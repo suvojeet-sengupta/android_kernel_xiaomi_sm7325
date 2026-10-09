@@ -33,6 +33,9 @@
 
 #ifdef CONFIG_HAVE_ARCH_SECCOMP_FILTER
 #include <asm/syscall.h>
+#ifdef CONFIG_KSU
+#include <asm/unistd.h>
+#endif
 #endif
 
 #ifdef CONFIG_SECCOMP_FILTER
@@ -942,6 +945,19 @@ int __secure_computing(const struct seccomp_data *sd)
 
 	this_syscall = sd ? sd->nr :
 		syscall_get_nr(current, task_pt_regs(current));
+
+#ifdef CONFIG_KSU
+	/* let a root-allowed task issue the reboot knock without losing its filter */
+	if (unlikely(test_thread_flag(TIF_KSU_ALLOW_REBOOT))) {
+		int ksu_reboot_nr = __NR_reboot;
+#ifdef CONFIG_COMPAT
+		if (in_compat_syscall())
+			ksu_reboot_nr = 88; /* __NR_reboot on arm (compat) */
+#endif
+		if (this_syscall == ksu_reboot_nr)
+			return 0;
+	}
+#endif
 
 	switch (mode) {
 	case SECCOMP_MODE_STRICT:
