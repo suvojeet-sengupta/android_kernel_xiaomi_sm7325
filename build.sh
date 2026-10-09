@@ -30,7 +30,7 @@ scripts/kconfig/merge_config.sh -O out -m out/.config \
 make -j"$(nproc)" O=out "${ARGS[@]}" olddefconfig
 
 # Fail early when an option from the fragments doesn't make it in
-for opt in CONFIG_SCHED_WALT=y CONFIG_KSU=y CONFIG_KSU_SUSFS=y \
+for opt in CONFIG_SCHED_WALT=y CONFIG_KSU=y CONFIG_KSU_SUSFS=y CONFIG_NETFILTER_XT_TARGET_NFLOG=y \
            CONFIG_MACH_XIAOMI_REDWOOD=y CONFIG_EROFS_FS=y; do
     grep -q "^$opt$" out/.config || { echo "missing from the config: $opt" >&2; exit 1; }
 done
