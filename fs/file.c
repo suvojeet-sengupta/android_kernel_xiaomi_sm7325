@@ -949,6 +949,21 @@ static struct file *__fget(unsigned int fd, fmode_t mask, unsigned int refs)
 	return file;
 }
 
+struct file *fget_task(struct task_struct *task, unsigned int fd)
+{
+	struct file *file = NULL;
+
+	task_lock(task);
+	if (task->files) {
+		rcu_read_lock();
+		file = __fget_files_rcu(task->files, fd, 0, 1);
+		rcu_read_unlock();
+	}
+	task_unlock(task);
+
+	return file;
+}
+
 struct file *fget_many(unsigned int fd, unsigned int refs)
 {
 	return __fget(fd, FMODE_PATH, refs);
